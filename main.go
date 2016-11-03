@@ -1,12 +1,11 @@
 package main
 
 import (
-    "fmt"
     "log"
     "net/http"
     "strconv"
 
-    "time"
+    // "time"
     "encoding/json"
 
     "github.com/gorilla/mux"
@@ -14,15 +13,23 @@ import (
 )
 
 
+//----------//
 // need to abstract out all this users crap to a db
-// << EOF
 
 type User struct {
-  UUID      uuid.UUID   `json:"uuid"`
-  Id        int         `json:"id"`
-  Name      string      `json:"name"`
-  Email     string      `json:"email"`
-  Created   time.Time   `json:"created"`
+  UUID              uuid.UUID   `json:"uuid"`
+  Id                int         `json:"id"`
+  Name              string      `json:"name"`
+  Email             string      `json:"email"`
+  // Hashed_password   string      ``                        // omit these somehow
+  // Salt              string      ``                        // omit these somehow
+  // App_ids           []int       `json:"app_ids"`
+  // Created_at        time.Time   `json:"created"`
+  // Updated_at        time.Time   `json:"updated"`
+  // permissions       []string    `json:"permissions"`
+  // Job_title         string      `json:"job_title"`
+  // Photo             string      `json:"photo_file_name"`
+  // Bio               string      `json:"bio"`
 }
 
 type Users []User
@@ -32,22 +39,17 @@ var users Users = Users{
   User{UUID: uuid.NewUUID(), Id: 2, Name: "Michael", Email: "michael@r.co"},
 }
 
-// EOF
+//----------//
 
 
 
 func main() {
 
   router := mux.NewRouter().StrictSlash(true)
-  router.HandleFunc("/", Index)
-  router.HandleFunc("/users", UserShow)
-  router.HandleFunc("/users/{userId}", UserShow) // need a way to force correct pattern here
+  router.HandleFunc("/", UserShow)
+  router.HandleFunc("/{userId}", UserShow) // need a way to force correct pattern here
 
   log.Fatal(http.ListenAndServe(":8000", router))
-}
-
-func Index(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintln(w, "KHAAAAAAAAAAAAAN!")
 }
 
 func UserShow(w http.ResponseWriter, r *http.Request) {
@@ -62,6 +64,7 @@ func UserShow(w http.ResponseWriter, r *http.Request) {
     // single user view
     userId, _ := strconv.Atoi(vars["userId"])
 
+    // user the search algorythm here in the future, it's more efficient
     for _, p := range users {
       if p.Id == userId {
         response = p
