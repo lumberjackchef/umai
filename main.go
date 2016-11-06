@@ -39,6 +39,8 @@ var users Users = Users{
   User{UUID: uuid.NewUUID(), Id: 2, Name: "Michael", Email: "michael@r.co"},
 }
 
+// Ideally, uuid would only get set on user creation & would not be duplicable
+
 //----------//
 
 
@@ -47,31 +49,30 @@ func main() {
 
   router := mux.NewRouter().StrictSlash(true)
   router.HandleFunc("/", UserShow)
-  router.HandleFunc("/{userId}", UserShow) // need a way to force correct pattern here
+  router.HandleFunc("/{userId}", UserShow)
 
   log.Fatal(http.ListenAndServe(":8000", router))
 }
 
 func UserShow(w http.ResponseWriter, r *http.Request) {
-  var response User
+  var user User
   vars := mux.Vars(r)
-  _, ok := vars["userId"]
 
   w.Header().Set("Content-Type", "application/json; charset=UTF-8")
   w.WriteHeader(http.StatusOK)
 
-  if ok {
+  if uid, ok := vars["userId"]; ok {
     // single user view
-    userId, _ := strconv.Atoi(vars["userId"])
+    userId, _ := strconv.Atoi(uid)
 
-    // user the search algorythm here in the future, it's more efficient
-    for _, p := range users {
-      if p.Id == userId {
-        response = p
+    // user the search algorithm here in the future, it's more efficient
+    for _, u := range users {
+      if u.Id == userId {
+        user = u
       }
     }
 
-    if err := json.NewEncoder(w).Encode(response); err != nil {
+    if err := json.NewEncoder(w).Encode(user); err != nil {
         panic(err)
     }
   } else {
