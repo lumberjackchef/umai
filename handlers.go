@@ -4,43 +4,79 @@ import (
   "encoding/json"
   "net/http"
   "strconv"
+  "io"
+  "io/ioutil"
 
   "github.com/gorilla/mux"
-  "github.com/pborman/uuid"
 )
 
-var users Users = Users{
-  User{UUID: uuid.NewUUID(), Id: 1, Name: "John", Email: "john@r.co"},
-  User{UUID: uuid.NewUUID(), Id: 2, Name: "Michael", Email: "michael@r.co"},
-}
-
-// Ideally, uuid would only get set on user creation & would not be duplicable
-
 func UserShow(w http.ResponseWriter, r *http.Request) {
-  var user User
   vars := mux.Vars(r)
-
-  w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-  w.WriteHeader(http.StatusOK)
 
   if uid, ok := vars["userId"]; ok {
     // single user view
-    userId, _ := strconv.Atoi(uid)
+    var userId int
+    var err error
+    if userId, err = strconv.Atoi(uid); err != nil {
+      panic(err)
+    }
 
-    // user the search algorithm here in the future, it's more efficient
-    for _, u := range users {
-      if u.Id == userId {
-        user = u
+    user := RepoFindUser(userId)
+
+    if user.Id > 0 {
+      w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+      w.WriteHeader(http.StatusOK)
+
+      if err := json.NewEncoder(w).Encode(user); err != nil {
+          panic(err)
       }
+
+      return
     }
 
-    if err := json.NewEncoder(w).Encode(user); err != nil {
-        panic(err)
-    }
+    // If we didn't find it, 404
+  	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+  	w.WriteHeader(http.StatusNotFound)
+
+  	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"}); err != nil {
+  		panic(err)
+  	}
   } else {
     // index view
+    w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+    w.WriteHeader(http.StatusOK)
+
     if err := json.NewEncoder(w).Encode(users); err != nil {
         panic(err)
     }
+  }
+}
+
+func UserCreate(w http.ResponseWriter, r *http.Request) {
+  var user User
+  body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+
+  // Error handling
+  if err != nil {
+    panic(err)
+  }
+  if err := r.Body.Close(); err != nil {
+    panic(err)
+  }
+  if err := json.Unmarshal(body, &user); err != nil {
+    w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+    w.WriteHeader(422) // unprocessabile entity
+
+    if err := json.NewEncoder(w).Encode(err); err != nil {
+      panic(err)
+    }
+  }
+
+  u := RepoCreateUser(user)
+  w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+  w.WriteHeader(http.StatusCreated)
+
+  if err := json.NewEncoder(w).Encode(u); err != nil {
+    panic(err)
   }
 }

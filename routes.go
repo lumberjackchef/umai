@@ -24,4 +24,10 @@ var routes = Routes{
     "/{userId}",
     UserShow,
   },
+  Route{
+    "UserCreate",
+    "POST",
+    "/",
+    UserCreate,
+  },
 }

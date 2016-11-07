@@ -10,8 +10,8 @@ import (
 // need to abstract out all this users crap to a db
 
 type User struct {
-  UUID              uuid.UUID   `json:"uuid"`
   Id                int         `json:"id"`
+  UUID              uuid.UUID   `json:"uuid"`
   Name              string      `json:"name"`
   Email             string      `json:"email"`
   // Hashed_password   string      ``                        // omit these somehow
