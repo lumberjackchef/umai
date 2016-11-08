@@ -1,6 +1,6 @@
-# Users Service
+# 🍕 UMAI 🍕
 
-A µService for user authentication & identification
+A µService for user authentication, identification, & management
 
 ## Installation
 
