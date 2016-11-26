@@ -15,11 +15,7 @@ func UserShow(w http.ResponseWriter, r *http.Request) {
 
   if uid, ok := vars["userId"]; ok {
     // single user view
-    var userId int
-    var err error
-    if userId, err = strconv.Atoi(uid); err != nil {
-      panic(err)
-    }
+    userId, _ := strconv.Atoi(uid)
 
     user := RepoFindUser(userId)
 
